@@ -31,8 +31,8 @@ func loadBasicAuthSession(validator basic.Validator, sessionGroups []string, pre
 	if preferEmail {
 		getSession = func(validator basic.Validator, sessionGroups []string, req *http.Request) (*sessionsapi.SessionState, error) {
 			session, err := getBasicSession(validator, sessionGroups, req)
-			if session != nil && err == nil {
-				session.User = session.Email
+			if session != nil {
+				session.Email = session.User
 			}
 			return session, err
 		}
@@ -51,7 +51,6 @@ func loadBasicAuthSession(validator basic.Validator, sessionGroups []string, pre
 		session, err := getSession(validator, sessionGroups, req)
 		if err != nil {
 			logger.Errorf("Error retrieving session from token in Authorization header: %v", err)
-			return
 		}
 
 		// Add the session to the scope if it was found
