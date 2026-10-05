@@ -198,12 +198,12 @@ func (p *GitHubProvider) hasOrgAndTeam(s *sessions.SessionState) error {
 	for _, ot := range presentOrgTeams {
 		presentOrgs[ot.Org] = true
 
-		if p.Org == ot.Org {
+		if strings.EqualFold(p.Org, ot.Org) {
 			hasOrg = true
 
 			teams := strings.Split(p.Team, ",")
 			for _, team := range teams {
-				if strings.EqualFold(strings.TrimSpace(team), ot.Org) {
+				if strings.EqualFold(strings.TrimSpace(team), ot.Team) {
 					logger.Printf("Found Github Organization/Team:%q/%q", ot.Org, ot.Team)
 					return nil
 				}
@@ -212,7 +212,7 @@ func (p *GitHubProvider) hasOrgAndTeam(s *sessions.SessionState) error {
 		}
 	}
 
-	if !hasOrg {
+	if hasOrg {
 		logger.Printf("Missing Team:%q from Org:%q in teams: %v", p.Team, p.Org, presentTeams)
 		return errors.New("user is missing required team")
 	}
